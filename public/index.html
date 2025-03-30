@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aether Uplink Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Inter:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-glow: #00eaff;
+        --secondary-glow: #ff00ff;
+        --background-start: #0a0f1a; /* Darker, less saturated blue */
+        --background-end: #101522;
+        --container-bg: rgba(16, 21, 34, 0.7); /* Semi-transparent */
+        --text-primary: #e0fbfc; /* Slightly off-white/cyan for readability */
+        --text-secondary: #a0d8f0;
+        --border-color: rgba(0, 234, 255, 0.3);
+        --border-hover: #00eaff;
+        --accent-cyan: #00eaff;
+        --accent-magenta: #f000f0; /* Adjusted magenta */
+        --font-header: "Orbitron", sans-serif;
+        --font-body: "Inter", sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-body);
+        min-height: 100vh;
+        background: linear-gradient(
+          135deg,
+          var(--background-start) 0%,
+          var(--background-end) 100%
+        );
+        color: var(--text-primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Subtle animated background grid/particles */
+      body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(
+            to right,
+            rgba(0, 234, 255, 0.05) 1px,
+            transparent 1px
+          ),
+          linear-gradient(
+            to bottom,
+            rgba(0, 234, 255, 0.05) 1px,
+            transparent 1px
+          );
+        background-size: 40px 40px;
+        opacity: 0.5;
+        z-index: -1;
+        animation: subtle-pan 60s linear infinite;
+      }
+
+      @keyframes subtle-pan {
+        0% {
+          background-position: 0 0;
+        }
+        100% {
+          background-position: 240px 240px;
+        } /* Adjust distance for speed */
+      }
+
+      h1 {
+        font-family: var(--font-header);
+        font-size: 2.2rem; /* Slightly smaller */
+        font-weight: 500;
+        margin-bottom: 2.5rem; /* More space */
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        color: var(--text-primary);
+        /* Soft glow effect */
+        text-shadow: 0 0 8px var(--primary-glow),
+          0 0 15px rgba(0, 234, 255, 0.5);
+        animation: subtle-glow 5s ease-in-out infinite;
+        text-align: center;
+      }
+
+      @keyframes subtle-glow {
+        0%,
+        100% {
+          text-shadow: 0 0 8px var(--primary-glow),
+            0 0 15px rgba(0, 234, 255, 0.5);
+          opacity: 0.95;
+        }
+        50% {
+          text-shadow: 0 0 12px var(--primary-glow),
+            0 0 20px rgba(0, 234, 255, 0.7);
+          opacity: 1;
+        }
+      }
+
+      .upload-container {
+        background: var(--container-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px; /* Slightly larger radius */
+        padding: 2.5rem 3rem; /* More padding */
+        width: 100%;
+        max-width: 550px; /* Slightly wider */
+        box-shadow: 0 8px 32px rgba(0, 234, 255, 0.1),
+          0 0 15px rgba(16, 21, 34, 0.5) inset; /* Softer shadow + inner */
+        position: relative;
+        overflow: hidden;
+        /* Glassmorphism effect */
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 1; /* Ensure container is above body::before */
+      }
+
+      /* Removed the rotating conic gradient, replaced with subtle border animation */
+      .upload-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 16px;
+        padding: 1px; /* Border thickness */
+        background: linear-gradient(
+          135deg,
+          var(--primary-glow),
+          var(--secondary-glow)
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: destination-out;
+        mask-composite: exclude;
+        opacity: 0.6;
+        animation: border-pulse 4s infinite ease-in-out;
+        z-index: -1; /* Behind inner content but within container */
+      }
+
+      @keyframes border-pulse {
+        0%,
+        100% {
+          opacity: 0.4;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.01);
+        } /* Subtle scale */
+      }
+
+      .upload-inner {
+        position: relative;
+        z-index: 2; /* Above container's ::before */
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Center elements */
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      .file-label,
+      button {
+        display: inline-block;
+        background: transparent;
+        padding: 0.8rem 1.8rem; /* Slightly larger padding */
+        border-radius: 10px; /* Smoother corners */
+        cursor: pointer;
+        font-weight: 600; /* Bolder */
+        text-transform: uppercase;
+        letter-spacing: 1.5px; /* More spacing */
+        transition: all 0.3s ease;
+        border: 2px solid;
+        margin-bottom: 1.5rem; /* Space below label */
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      .file-label {
+        color: var(--accent-cyan);
+        border-color: var(--border-color);
+        box-shadow: 0 0 8px rgba(0, 234, 255, 0.3);
+      }
+
+      .file-label:hover {
+        background: rgba(0, 234, 255, 0.1);
+        border-color: var(--border-hover);
+        color: #fff; /* Brighter text on hover */
+        box-shadow: 0 0 15px var(--accent-cyan);
+      }
+
+      button {
+        color: var(--accent-magenta);
+        border-color: rgba(255, 0, 255, 0.4); /* Magenta border */
+        box-shadow: 0 0 8px rgba(255, 0, 255, 0.3);
+        margin-top: 0; /* Remove top margin, use gap */
+      }
+
+      button:hover {
+        background: rgba(255, 0, 255, 0.1);
+        border-color: var(--accent-magenta);
+        color: #fcc; /* Lighter magenta text on hover */
+        box-shadow: 0 0 15px var(--accent-magenta);
+      }
+
+      #progressContainer {
+        margin-top: 2rem; /* More space before progress */
+        width: 100%;
+        display: none;
+      }
+
+      progress {
+        width: 100%;
+        height: 8px; /* Slimmer bar */
+        border-radius: 4px;
+        background: rgba(0, 234, 255, 0.1);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        appearance: none; /* Override default styles */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+      }
+
+      /* Webkit progress bar styles */
+      progress::-webkit-progress-bar {
+        background: transparent;
+        border-radius: 4px;
+      }
+
+      progress::-webkit-progress-value {
+        background: linear-gradient(
+          90deg,
+          var(--accent-cyan),
+          var(--accent-magenta)
+        );
+        border-radius: 4px;
+        box-shadow: 0 0 10px var(--accent-cyan), 0 0 5px var(--accent-magenta); /* Glow effect */
+        transition: width 0.4s ease-out; /* Smoother transition */
+      }
+
+      /* Firefox progress bar styles */
+      progress::-moz-progress-bar {
+        background: linear-gradient(
+          90deg,
+          var(--accent-cyan),
+          var(--accent-magenta)
+        );
+        border-radius: 4px;
+        box-shadow: 0 0 10px var(--accent-cyan), 0 0 5px var(--accent-magenta);
+        transition: width 0.4s ease-out;
+      }
+
+      #result {
+        margin-top: 2rem; /* Consistent spacing */
+        font-size: 0.9rem; /* Slightly smaller */
+        text-align: center;
+        word-break: break-all;
+        color: var(--text-secondary); /* Softer color for result text */
+        line-height: 1.6; /* Better readability */
+        max-width: 100%;
+      }
+
+      #result span {
+        /* Style for the "Transmission complete!" text */
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      #result a {
+        color: var(--accent-magenta);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 400;
+        /* Underline on hover for clarity */
+        border-bottom: 1px solid transparent;
+      }
+
+      #result a:hover {
+        color: var(--primary-glow); /* Cyan on hover */
+        text-shadow: 0 0 8px var(--primary-glow);
+        border-bottom: 1px solid var(--primary-glow);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="upload-container">
+      <div class="upload-inner">
+        <h1>Aether Uplink</h1>
+        <label for="fileInput" class="file-label">Select Data Stream</label>
+        <input type="file" id="fileInput" />
+        <button onclick="uploadFile()">Initiate Transfer</button>
+        <div id="progressContainer">
+          <progress id="uploadProgress" value="0" max="100"></progress>
+        </div>
+        <div id="result"></div>
+      </div>
+    </div>
+
+    <script>
+      async function generateKey() {
+        return await crypto.subtle.generateKey(
+          { name: "AES-GCM", length: 256 },
+          true, // Make key extractable
+          ["encrypt", "decrypt"]
+        );
+      }
+
+      async function encryptFile(file, key) {
+        // IV (Initialization Vector) should be unique for each encryption
+        const iv = crypto.getRandomValues(new Uint8Array(12)); // 96 bits is recommended for AES-GCM
+        const data = await file.arrayBuffer();
+        const encrypted = await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv },
+          key,
+          data
+        );
+        return { iv, encrypted };
+      }
+
+      async function uploadFile() {
+        const fileInput = document.getElementById("fileInput");
+        const resultDiv = document.getElementById("result");
+        const progressContainer = document.getElementById("progressContainer");
+        const progressBar = document.getElementById("uploadProgress");
+
+        // Clear previous results
+        resultDiv.innerHTML = "";
+
+        const file = fileInput.files[0];
+        if (!file) {
+          resultDiv.textContent = "Error: No data stream selected.";
+          resultDiv.style.color = "var(--accent-magenta)"; // Use error color
+          return;
+        }
+
+        const maxSize = 150 * 1024 * 1024; // 150MB limit
+        if (file.size > maxSize) {
+          resultDiv.textContent = `Error: Data stream exceeds ${
+            maxSize / 1024 / 1024
+          }MB capacity.`;
+          resultDiv.style.color = "var(--accent-magenta)";
+          return;
+        }
+
+        // Show progress bar immediately
+        progressContainer.style.display = "block";
+        progressBar.value = 0;
+        resultDiv.textContent = "Initializing secure channel..."; // Initial status
+        resultDiv.style.color = "var(--text-secondary)"; // Reset color
+
+        try {
+          resultDiv.textContent = "Generating encryption key...";
+          const key = await generateKey();
+
+          resultDiv.textContent = "Encrypting data stream...";
+          const { iv, encrypted } = await encryptFile(file, key);
+
+          // Export the key to share it (in a real app, this needs secure handling)
+          const exportedKey = await crypto.subtle.exportKey("raw", key);
+          // Convert ArrayBuffer to Base64 string for the URL
+          const keyBase64 = btoa(
+            String.fromCharCode(...new Uint8Array(exportedKey))
+          );
+
+          // Combine IV and encrypted data into one Blob
+          // IV first (12 bytes), then encrypted data
+          const combined = new Uint8Array(iv.length + encrypted.byteLength);
+          combined.set(iv);
+          combined.set(new Uint8Array(encrypted), iv.length);
+
+          const formData = new FormData();
+          // Send the combined data as a Blob
+          formData.append(
+            "file",
+            new Blob([combined]),
+            file.name + ".encrypted"
+          ); // Append .encrypted or similar
+
+          resultDiv.textContent = "Transmitting data...";
+
+          await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/upload", true); // Replace with your actual upload endpoint
+
+            xhr.upload.onprogress = (event) => {
+              if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                progressBar.value = percentComplete;
+                // Optional: Update status text during upload
+                resultDiv.textContent = `Transmitting... ${Math.round(
+                  percentComplete
+                )}%`;
+              }
+            };
+
+            xhr.onload = () => {
+              progressBar.value = 100; // Ensure it hits 100% on completion
+              if (xhr.status === 200) {
+                try {
+                  const response = JSON.parse(xhr.responseText);
+                  const { fileId, filename } = response; // Assuming server returns ID and original filename
+                  // Construct download URL: include file ID, base64 key, and original filename
+                  const downloadUrl = `${
+                    window.location.origin
+                  }/download.html#${fileId}|${keyBase64}|${encodeURIComponent(
+                    file.name // Use original unencrypted filename here
+                  )}`;
+
+                  resultDiv.innerHTML = `
+                                    <span>Transmission Complete!</span>
+                                    Secure Access Link: <a href="${downloadUrl}" target="_blank" rel="noopener noreferrer">${downloadUrl}</a>
+                                `;
+                  resultDiv.style.color = "var(--text-secondary)"; // Reset color
+                  resolve(response);
+                } catch (parseError) {
+                  console.error(
+                    "Failed to parse server response:",
+                    xhr.responseText
+                  );
+                  reject(
+                    new Error(
+                      "Transmission successful, but failed to process server response."
+                    )
+                  );
+                }
+              } else {
+                console.error(
+                  "Upload failed:",
+                  xhr.status,
+                  xhr.statusText,
+                  xhr.responseText
+                );
+                reject(
+                  new Error(
+                    `Transmission failed: Server responded with status ${xhr.status}.`
+                  )
+                );
+              }
+            };
+
+            xhr.onerror = (err) => {
+              console.error("XHR onerror:", err);
+              reject(new Error("Network error during transmission."));
+            };
+            xhr.ontimeout = () => {
+              reject(new Error("Transmission timed out."));
+            };
+
+            xhr.send(formData);
+          });
+        } catch (error) {
+          console.error("Upload process error:", error);
+          resultDiv.textContent = `Error: ${
+            error.message || "An unexpected error occurred during the process."
+          }`;
+          resultDiv.style.color = "var(--accent-magenta)"; // Error color
+          progressContainer.style.display = "none"; // Hide progress on error
+        } finally {
+          // Optional: Hide progress bar after a short delay on success/failure unless it's an error
+          setTimeout(() => {
+            if (resultDiv.style.color !== "var(--accent-magenta)") {
+              // Only hide if not showing error
+              progressContainer.style.display = "none";
+            }
+          }, 3000); // Hide after 3 seconds
+        }
+      }
+
+      // Add event listener to update label text when file is chosen
+      const fileInput = document.getElementById("fileInput");
+      const fileLabel = document.querySelector(".file-label");
+      const originalLabelText = fileLabel.textContent;
+
+      fileInput.addEventListener("change", (event) => {
+        if (event.target.files.length > 0) {
+          // Keep filename short if it's too long
+          let fileName = event.target.files[0].name;
+          if (fileName.length > 25) {
+            fileName =
+              fileName.substring(0, 12) +
+              "..." +
+              fileName.substring(fileName.length - 10);
+          }
+          fileLabel.textContent = `Selected: ${fileName}`;
+        } else {
+          fileLabel.textContent = originalLabelText; // Reset if no file selected
+        }
+      });
+    </script>
+  </body>
+</html>

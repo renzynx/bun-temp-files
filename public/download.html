@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aether Downlink Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Inter:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-glow: #00eaff;
+        --secondary-glow: #ff00ff;
+        --background-start: #0a0f1a;
+        --background-end: #101522;
+        --container-bg: rgba(16, 21, 34, 0.7);
+        --text-primary: #e0fbfc;
+        --text-secondary: #a0d8f0;
+        --border-color: rgba(0, 234, 255, 0.3);
+        --border-hover: #00eaff; /* Keep for potential future elements */
+        --accent-cyan: #00eaff;
+        --accent-magenta: #f000f0;
+        --error-color: var(--accent-magenta);
+        --success-color: var(--accent-cyan);
+        --font-header: "Orbitron", sans-serif;
+        --font-body: "Inter", sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-body);
+        min-height: 100vh;
+        background: linear-gradient(
+          135deg,
+          var(--background-start) 0%,
+          var(--background-end) 100%
+        );
+        color: var(--text-primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Subtle animated background grid/particles */
+      body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(
+            to right,
+            rgba(0, 234, 255, 0.05) 1px,
+            transparent 1px
+          ),
+          linear-gradient(
+            to bottom,
+            rgba(0, 234, 255, 0.05) 1px,
+            transparent 1px
+          );
+        background-size: 40px 40px;
+        opacity: 0.5;
+        z-index: -1;
+        animation: subtle-pan 60s linear infinite;
+      }
+
+      @keyframes subtle-pan {
+        0% {
+          background-position: 0 0;
+        }
+        100% {
+          background-position: 240px 240px;
+        }
+      }
+
+      h1 {
+        font-family: var(--font-header);
+        font-size: 2.2rem;
+        font-weight: 500;
+        margin-bottom: 2.5rem;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        color: var(--text-primary);
+        text-shadow: 0 0 8px var(--primary-glow),
+          0 0 15px rgba(0, 234, 255, 0.5);
+        animation: subtle-glow 5s ease-in-out infinite;
+        text-align: center;
+      }
+
+      @keyframes subtle-glow {
+        0%,
+        100% {
+          text-shadow: 0 0 8px var(--primary-glow),
+            0 0 15px rgba(0, 234, 255, 0.5);
+          opacity: 0.95;
+        }
+        50% {
+          text-shadow: 0 0 12px var(--primary-glow),
+            0 0 20px rgba(0, 234, 255, 0.7);
+          opacity: 1;
+        }
+      }
+
+      .status-container {
+        background: var(--container-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2.5rem 3rem;
+        width: 100%;
+        max-width: 600px; /* Can be wider for status info */
+        box-shadow: 0 8px 32px rgba(0, 234, 255, 0.1),
+          0 0 15px rgba(16, 21, 34, 0.5) inset;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 1;
+        text-align: center; /* Center text inside */
+      }
+
+      /* Optional subtle border animation */
+      .status-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 16px;
+        padding: 1px;
+        background: linear-gradient(
+          135deg,
+          var(--primary-glow),
+          var(--secondary-glow)
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: destination-out;
+        mask-composite: exclude;
+        opacity: 0.5; /* Less intense than upload page */
+        animation: border-pulse-slow 8s infinite ease-in-out;
+        z-index: -1;
+      }
+
+      @keyframes border-pulse-slow {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      #status-content {
+        position: relative; /* Ensure content is above ::before */
+        z-index: 2;
+      }
+
+      #status-message {
+        font-size: 1.1rem;
+        font-weight: 400;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+        min-height: 2em; /* Reserve space */
+        transition: color 0.3s ease;
+      }
+
+      #filename-display {
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        word-break: break-all;
+        margin-top: 1rem;
+        opacity: 0; /* Initially hidden */
+        transition: opacity 0.5s ease;
+      }
+
+      /* Specific styles for status messages */
+      #status-message.success {
+        color: var(--success-color);
+        text-shadow: 0 0 5px var(--success-color);
+      }
+
+      #status-message.error {
+        color: var(--error-color);
+        text-shadow: 0 0 5px var(--error-color);
+      }
+
+      /* Simple spinner animation */
+      .spinner {
+        display: inline-block;
+        border: 3px solid rgba(0, 234, 255, 0.3); /* Light border */
+        border-radius: 50%;
+        border-top-color: var(--primary-glow); /* Highlight color */
+        width: 24px;
+        height: 24px;
+        animation: spin 1s ease-in-out infinite;
+        margin-bottom: 1rem; /* Space below spinner */
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Hide spinner by default */
+      .spinner.hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="status-container">
+      <h1>Aether Downlink</h1>
+      <div id="status-content">
+        <div id="spinner" class="spinner"></div>
+        <div id="status-message">Initializing secure connection...</div>
+        <div id="filename-display"></div>
+      </div>
+    </div>
+
+    <script>
+      /**
+       * Decrypts data using AES-GCM.
+       * @param {ArrayBuffer} encryptedData - The encrypted data (ciphertext).
+       * @param {CryptoKey} key - The AES-GCM key object.
+       * @param {Uint8Array} iv - The Initialization Vector.
+       * @returns {Promise<ArrayBuffer>} - The decrypted data (plaintext).
+       */
+      async function decryptFile(encryptedData, key, iv) {
+        if (!(iv instanceof Uint8Array) || iv.length !== 12) {
+          throw new Error(
+            "Invalid IV format or length for AES-GCM decryption."
+          );
+        }
+        if (!(encryptedData instanceof ArrayBuffer)) {
+          throw new Error("Encrypted data must be an ArrayBuffer.");
+        }
+        return await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: iv }, // Ensure iv is passed correctly
+          key,
+          encryptedData
+        );
+      }
+
+      /**
+       * Updates the status message and its style.
+       * @param {string} message - The text message to display.
+       * @param {'info' | 'success' | 'error'} type - The type of message for styling.
+       */
+      function updateStatus(message, type = "info") {
+        const statusDiv = document.getElementById("status-message");
+        const spinner = document.getElementById("spinner");
+        statusDiv.textContent = message;
+        statusDiv.className = type; // Removes previous classes
+
+        // Hide spinner on final states (success/error)
+        if (type === "success" || type === "error") {
+          spinner.classList.add("hidden");
+        } else {
+          spinner.classList.remove("hidden");
+        }
+      }
+
+      /**
+       * Handles the file download process.
+       */
+      async function processDownload() {
+        const resultDiv = document.getElementById("status-message"); // Use the specific status div
+        const filenameDiv = document.getElementById("filename-display");
+        const spinner = document.getElementById("spinner");
+
+        try {
+          updateStatus("Parsing secure link...", "info");
+
+          // 1. Extract data from URL fragment (#)
+          const hashData = window.location.hash.slice(1); // Remove leading '#'
+          if (!hashData) {
+            throw new Error("Link is missing required data fragment.");
+          }
+
+          const parts = hashData.split("|");
+          if (parts.length !== 3) {
+            throw new Error(
+              "Invalid link format. Expected fileId|keyBase64|filename."
+            );
+          }
+          const [fileId, keyBase64, encodedFilename] = parts;
+          const filename = decodeURIComponent(encodedFilename);
+
+          if (!fileId || !keyBase64 || !filename) {
+            throw new Error("Invalid data in link fragment.");
+          }
+
+          // Display filename early
+          filenameDiv.textContent = `Target: ${filename}`;
+          filenameDiv.style.opacity = "1";
+
+          updateStatus("Reconstructing decryption key...", "info");
+
+          // 2. Import the encryption key
+          let key;
+          try {
+            // Convert Base64 key string back to ArrayBuffer
+            const keyData = Uint8Array.from(atob(keyBase64), (c) =>
+              c.charCodeAt(0)
+            );
+            key = await crypto.subtle.importKey(
+              "raw", // Format of the key data
+              keyData, // The key data itself
+              { name: "AES-GCM" }, // Algorithm details
+              false, // Whether the key is extractable (false for decryption key)
+              ["decrypt"] // Key usage
+            );
+          } catch (keyError) {
+            console.error("Key import error:", keyError);
+            throw new Error(
+              "Failed to reconstruct decryption key. Link might be corrupted."
+            );
+          }
+
+          updateStatus(
+            `Requesting encrypted data stream [ID: ${fileId}]...`,
+            "info"
+          );
+
+          // 3. Fetch the encrypted file data from the server
+          const response = await fetch(`/download/${fileId}`); // Adjust endpoint if needed
+
+          if (!response.ok) {
+            if (response.status === 404) {
+              throw new Error(
+                "File not found on server. It might have expired or been deleted."
+              );
+            } else {
+              throw new Error(
+                `Server error: Failed to fetch file (Status: ${response.status}).`
+              );
+            }
+          }
+
+          updateStatus("Receiving encrypted data stream...", "info");
+          const combinedData = await response.arrayBuffer();
+
+          // 4. Separate IV and Encrypted Data
+          // AES-GCM standard IV is 12 bytes (96 bits)
+          const ivLength = 12;
+          if (combinedData.byteLength <= ivLength) {
+            throw new Error(
+              "Received data is too short to contain IV and encrypted content."
+            );
+          }
+          const iv = new Uint8Array(combinedData.slice(0, ivLength));
+          const encrypted = combinedData.slice(ivLength);
+
+          updateStatus("Decrypting data stream...", "info");
+
+          // 5. Decrypt the file data
+          let decrypted;
+          try {
+            decrypted = await decryptFile(encrypted, key, iv);
+          } catch (decryptError) {
+            console.error("Decryption failed:", decryptError);
+            // Provide a more user-friendly message for common decryption issues (often wrong key/corrupted data)
+            throw new Error(
+              "Decryption failed. The key may be incorrect or the data corrupted."
+            );
+          }
+
+          updateStatus(
+            "Data stream decrypted. Preparing download...",
+            "success"
+          );
+
+          // 6. Create a Blob and trigger download
+          const blob = new Blob([decrypted], {
+            type:
+              response.headers.get("Content-Type") ||
+              "application/octet-stream",
+          }); // Use original type if available
+          const downloadUrl = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = downloadUrl;
+          a.download = filename; // Use the original filename extracted from the link
+          document.body.appendChild(a); // Append anchor to body for compatibility
+          a.click(); // Programmatically click the anchor to trigger download
+
+          // Clean up
+          document.body.removeChild(a); // Remove the anchor
+          URL.revokeObjectURL(downloadUrl); // Release the object URL
+
+          updateStatus("Download initiated successfully!", "success");
+          // Optional: Add a link back or further instructions
+          // filenameDiv.innerHTML += `<br><br><a href="/" style="color: var(--accent-cyan);">Return to Uplink</a>`;
+        } catch (error) {
+          console.error("Download process failed:", error);
+          updateStatus(`Error: ${error.message}`, "error");
+          // Keep filename visible even on error if it was parsed
+          if (filenameDiv.textContent) {
+            filenameDiv.style.opacity = "1";
+          } else {
+            filenameDiv.style.opacity = "0";
+          }
+        }
+      }
+
+      // Run the download process automatically when the page loads
+      window.onload = processDownload;
+    </script>
+  </body>
+</html>
